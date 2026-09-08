@@ -29,6 +29,10 @@ npm run verify
 
 The deployment source and Studio source must remain identical. Generate the source manifest immediately before deployment and record the resulting SHA-256 in the deployment log.
 
+## Bradbury deployment
+
+The current Bradbury deployment is [`0x26BA1d035bB88e0c58630DCABB6d13F0359c3FE3`](https://explorer-bradbury.genlayer.com/address/0x26BA1d035bB88e0c58630DCABB6d13F0359c3FE3). Deployment succeeded with `FINISHED_WITH_RETURN`; the resumable smoke run is currently at `REVIEWING` after policy, publisher, release, evidence, and review-start operations. The remaining consensus and appeal steps require additional Bradbury testnet balance.
+
 ## Important limitation
 
 The contract uses authority-bound HTTPS paths plus exact body hashes and signed-payload consistency. `signature` is deliberately required as a record field, but it is not treated as cryptographic proof by itself. A deployment that needs cryptographic issuer identity should extend the publisher registry with a supported public-key/signature primitive and verify it inside the contract before acceptance.

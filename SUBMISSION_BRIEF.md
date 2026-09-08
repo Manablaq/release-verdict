@@ -23,6 +23,8 @@ Open a release, attach artifact and security records from two registered source 
 ## Evidence URLs to provide after deployment
 
 1. Public GitHub repository root.
-2. Bradbury Explorer contract address.
+2. Bradbury Explorer contract address: https://explorer-bradbury.genlayer.com/address/0x26BA1d035bB88e0c58630DCABB6d13F0359c3FE3
+
+Repository: https://github.com/Manablaq/release-verdict
 
 The source committed to GitHub and the deployed source must match byte-for-byte. Do not submit until `docs/DEPLOYMENT_LOG_BRADBURY.md` contains the live address and accepted transaction results.
