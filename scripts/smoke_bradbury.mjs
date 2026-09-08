@@ -138,7 +138,7 @@ if (Number(release.status) === 3 || Number(release.status) === 7) {
   release = await read("get_release", [releaseId]);
 }
 report.checks.push({ check: "initial-consensus", pass: Number(release.status) === 4 && Boolean(release.consensus_bound), status: String(release.status), decision: String(release.decision), consensus_bound: Boolean(release.consensus_bound) });
-if (Number(release.status) === 4) {
+if (Number(release.status) === 4 && !release.appeal_hash) {
   transactions.push(await accepted("submit third-source appeal", "submit_appeal", [
     releaseId, appeal.uri, appeal.hash, "appeal-fixtures", appeal.record.record_id, 1n, publishedAt, validUntil,
     "Third-source corroboration requested for the release record.",
@@ -152,5 +152,11 @@ if (Number(release.status) === 5) {
   release = await read("get_release", [releaseId]);
 }
 report.checks.push({ check: "appeal-consensus", pass: Number(release.status) === 4 && Boolean(release.consensus_bound) && Number(release.resolution_count) >= 2, status: String(release.status), decision: String(release.decision), resolutions: String(release.resolution_count) });
+
+if (Number(release.status) === 4 && release.appeal_hash && Math.floor(Date.now() / 1000) >= Number(release.challenge_deadline)) {
+  transactions.push(await accepted("finalize release", "finalize_release", [releaseId]));
+  release = await read("get_release", [releaseId]);
+}
+report.checks.push({ check: "final", pass: Number(release.status) === 6 && Boolean(release.consensus_bound), status: String(release.status), promoted: Number(release.status) === 6 && Number(release.decision) === 1 });
 
 console.log(JSON.stringify({ ...report, final_read: release }, null, 2));
