@@ -1,0 +1,19 @@
+{
+  "name": "release-verdict",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Standalone GenLayer Intelligent Contract for consensus-backed release policy verdicts",
+  "type": "module",
+  "dependencies": {
+    "genlayer-js": "^1.1.8",
+    "keytar": "^7.9.0"
+  },
+  "scripts": {
+    "test": "python3 -m unittest discover -s tests -v",
+    "check:python": "PYTHONPYCACHEPREFIX=/private/tmp/release-verdict-pycache python3 -m py_compile contracts/release_verdict.py studio_bradbury/release_verdict.py",
+    "check:parity": "cmp contracts/release_verdict.py studio_bradbury/release_verdict.py",
+    "source:manifest": "node scripts/source_manifest.mjs",
+    "verify": "npm run check:python && npm run check:parity && npm run source:manifest && npm test",
+    "smoke:bradbury": "node scripts/smoke_bradbury.mjs"
+  }
+}
