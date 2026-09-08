@@ -20,20 +20,21 @@ This file is updated only after the live deployment and smoke test. It records t
 | register policy | `0xddb6cc4a6808b4e7f8e910365c8c89c8575654d6c611e7a10439dad52f429e2a` | ACCEPTED | FINISHED_WITH_RETURN | `release-policy-v1` registered |
 | register artifact publisher | prior smoke transaction | ACCEPTED | FINISHED_WITH_RETURN | `artifact-fixtures` registered |
 | register security publisher | prior smoke transaction | ACCEPTED | FINISHED_WITH_RETURN | `security-fixtures` registered |
-| register appeal publisher | `0xf7cdefbf9d32f5a999094559e3b2d2e0ac0760f4c67340c966c08eb1be0ca7ea` | accepted | pending read-back | `appeal-fixtures` registered |
+| register appeal publisher | `0xf7cdefbf9d32f5a999094559e3b2d2e0ac0760f4c67340c966c08eb1be0ca7ea` | ACCEPTED | FINISHED_WITH_RETURN | `appeal-fixtures` registered |
 | open release | `0xfee311f72d45820c52f51e7abd0da5faba72684801a510d7368001192447ebe5` | ACCEPTED | FINISHED_WITH_RETURN | release `1` opened |
 | attach evidence | `0xfdaff4cbaee2d0301efc3b9ae4e084f8a315e937ef3bb514dd266e636d91fa3e` | ACCEPTED | FINISHED_WITH_RETURN | artifact + security evidence attached |
-| start review | `0xee91981ba5889d096e9013ddf4d2623abaac84a600c61c031168a83591730701` | accepted | pending read-back | release `1` reviewing |
-| resolve release | pending | pending | pending | pending |
-| submit appeal | pending | pending | pending | pending |
+| start review | `0xee91981ba5889d096e9013ddf4d2623abaac84a600c61c031168a83591730701` | ACCEPTED | FINISHED_WITH_RETURN | release `1` reviewing |
+| resolve release | `0x418c37ad05e1fa291eb033dde4b9b0cd8a3e80700420d054ae88496044a17d98`; retry `0x930ecb3984750343e226cbfb59d1688cf867648b19e937972c34342fa457763d` | leader timeout in receipt; state later became reviewed | pending explorer verification | initial consensus eventually observed before appeal |
+| submit appeal | `0x60e3fc54e97fa04b6b65dfcda758db40f5ba30efede4a4d6a3c015e141fad7a3` | ACCEPTED | FINISHED_WITH_RETURN | appeal recorded; revision `2` |
+| fresh start review | `0x7e7daa26cc5973df7e198512504da2bd54dff975344b02062b4bbef42b5b365f` | ACCEPTED | FINISHED_WITH_RETURN | release `1` reviewing again |
 | fresh resolve | pending | pending | pending | pending |
 | finalize release | pending | pending | pending | pending |
 
 ## Result
 
-- Current status: `REVIEWING` after the initial evidence attachment and review-start transactions.
-- Remaining live test: first resolve, third-source appeal, fresh resolve, then finalization.
+- Current status: `REVIEWING` after the third-source appeal and fresh review-start transaction.
+- Remaining live test: fresh resolve, then finalization after the new challenge deadline.
 - Final status: pending until the worker account is refilled.
 - Final decision: pending
-- Final evidence revision: `1` before appeal
-- Final resolution count: pending
+- Final evidence revision: `2` after appeal
+- Final resolution count: `1` before appealed resolve
