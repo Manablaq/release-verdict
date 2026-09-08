@@ -31,7 +31,7 @@ The deployment source and Studio source must remain identical. Generate the sour
 
 ## Bradbury deployment
 
-The v2 Bradbury deployment is [`0x12099eDc750360aE0321eff33c90E9D84cE772B2`](https://explorer-bradbury.genlayer.com/address/0x12099eDc750360aE0321eff33c90E9D84cE772B2). Its complete live verification record is maintained in [`docs/DEPLOYMENT_LOG_BRADBURY.md`](docs/DEPLOYMENT_LOG_BRADBURY.md). The deployed source and Studio source are byte-for-byte identical. The live smoke path covers publisher-key registration, signed evidence verification, two consensus resolutions with a third-source appeal, and delayed finalization.
+The v2 Bradbury deployment is [`0x12099eDc750360aE0321eff33c90E9D84cE772B2`](https://explorer-bradbury.genlayer.com/address/0x12099eDc750360aE0321eff33c90E9D84cE772B2). Its complete live verification record is maintained in [`docs/DEPLOYMENT_LOG_BRADBURY.md`](docs/DEPLOYMENT_LOG_BRADBURY.md). The deployed source and Studio source are byte-for-byte identical. The live smoke path covers publisher-key registration, signed evidence verification, two consensus resolutions with a third-source appeal, and delayed finalization. Release `1` finalized as `PROMOTE` with confidence `9500`.
 
 ## Cryptographic verification boundary
 

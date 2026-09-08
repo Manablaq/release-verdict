@@ -31,20 +31,17 @@ This file records the corrected ReleaseVerdict v2 source, immutable signed fixtu
 | submit third-source appeal | `0xcb1c6cd4600c4123c75214853b0bb4c6ecdf0eab80e43a9499e34512056e5801` | ACCEPTED | FINISHED_WITH_RETURN | old consensus cleared; revision `2` |
 | start appealed review | `0xaf7e3170d729780ae4b87a48d008ff002fa46ac27ed968f9772a81d70f4e7758` | ACCEPTED | FINISHED_WITH_RETURN | appealed review started |
 | resolve appealed review | `0xb17223e5da0fa536897577a0289a6fa968562470b421e9d72f5f412805ffc086` | ACCEPTED | FINISHED_WITH_RETURN | `PROMOTE`, confidence `9500`, resolution `2` |
+| finalize release | `0x402b4f9514d639bb20b7b6e455421190e157b26d8394eac70ef4d63361c5e089` | ACCEPTED | FINISHED_WITH_RETURN | status `FINAL` |
 
 ## Result
 
-- Current status at last read: `REVIEWED` (`4`)
+- Current status at final read: `FINAL` (`6`)
 - Decision: `PROMOTE` (`1`)
 - Confidence: `9500`
 - Consensus bound: `true`
 - Evidence revision: `2`
 - Resolution count: `2`
 - Challenge deadline: `1788886319`
-
-## Finalization
-
-The challenge window is a required protocol safety delay. Run the resumable
-smoke command after the deadline to submit `finalize_release`; record its
-accepted transaction and then confirm `is_final(1) == true` and
-`is_promoted(1) == true`.
+- `is_final(1)`: `true`
+- `is_promoted(1)`: `true`
+- Finalization transaction: `0x402b4f9514d639bb20b7b6e455421190e157b26d8394eac70ef4d63361c5e089`
