@@ -27,14 +27,16 @@ This file is updated only after the live deployment and smoke test. It records t
 | resolve release | `0x418c37ad05e1fa291eb033dde4b9b0cd8a3e80700420d054ae88496044a17d98`; retry `0x930ecb3984750343e226cbfb59d1688cf867648b19e937972c34342fa457763d` | leader timeout in receipt; state later became reviewed | pending explorer verification | initial consensus eventually observed before appeal |
 | submit appeal | `0x60e3fc54e97fa04b6b65dfcda758db40f5ba30efede4a4d6a3c015e141fad7a3` | ACCEPTED | FINISHED_WITH_RETURN | appeal recorded; revision `2` |
 | fresh start review | `0x7e7daa26cc5973df7e198512504da2bd54dff975344b02062b4bbef42b5b365f` | ACCEPTED | FINISHED_WITH_RETURN | release `1` reviewing again |
-| fresh resolve | pending | pending | pending | pending |
-| finalize release | pending | pending | pending | pending |
+| fresh resolve | `0xf008af2d57967307c610a958d6234cfe55f80351e9444b6fd69fe379ba7cecfa` | ACCEPTED | FINISHED_WITH_RETURN | `PROMOTE`, confidence `9500`, resolutions `2` |
+| finalize release | `0xb6ead6870a50da092476435a0a02d14036ac13985f807367ad754137d3c6c472` | ACCEPTED | FINISHED_WITH_RETURN | status `FINAL` |
 
 ## Result
 
 - Current status: `REVIEWING` after the third-source appeal and fresh review-start transaction.
 - Remaining live test: fresh resolve, then finalization after the new challenge deadline.
-- Final status: pending until the worker account is refilled.
-- Final decision: pending
+- Final status: `FINAL`
+- Final decision: `PROMOTE` (`decision` code `1`)
 - Final evidence revision: `2` after appeal
-- Final resolution count: `1` before appealed resolve
+- Final resolution count: `2`
+- `is_final(1)`: `true`
+- `is_promoted(1)`: `true`

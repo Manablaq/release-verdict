@@ -31,7 +31,7 @@ The deployment source and Studio source must remain identical. Generate the sour
 
 ## Bradbury deployment
 
-The current Bradbury deployment is [`0x26BA1d035bB88e0c58630DCABB6d13F0359c3FE3`](https://explorer-bradbury.genlayer.com/address/0x26BA1d035bB88e0c58630DCABB6d13F0359c3FE3). Deployment succeeded with `FINISHED_WITH_RETURN`; the resumable smoke run is currently at `REVIEWING` after policy, publisher, release, evidence, and review-start operations. The remaining consensus and appeal steps require additional Bradbury testnet balance.
+The current Bradbury deployment is [`0x26BA1d035bB88e0c58630DCABB6d13F0359c3FE3`](https://explorer-bradbury.genlayer.com/address/0x26BA1d035bB88e0c58630DCABB6d13F0359c3FE3). Deployment succeeded with `FINISHED_WITH_RETURN`. The live smoke path completed policy registration, three publisher authorities, release creation, two consensus resolutions with a third-source appeal, and delayed finalization. Release `1` is `FINAL` with decision `PROMOTE`; both `is_final(1)` and `is_promoted(1)` return `true`.
 
 ## Important limitation
 

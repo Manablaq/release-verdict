@@ -25,6 +25,6 @@ The smoke script is resumable and idempotent. It reads the existing publisher, p
 5. Initial consensus resolved to `PROMOTE`.
 6. A third-source appeal reset the old binding and incremented evidence revision to `2`.
 7. The appealed review resolved again to `PROMOTE`, confidence `9500`, resolution count `2`.
-8. Finalization is intentionally delayed until the appeal deadline; `is_final` must remain false before then.
+8. Finalization was intentionally delayed until the appeal deadline; it completed in transaction `0xb6ead6870a50da092476435a0a02d14036ac13985f807367ad754137d3c6c472`.
 
-The final verification step is `finalize_release(1)` after the displayed `challenge_deadline`, followed by `is_final(1) == true` and `is_promoted(1) == true`.
+The final verification returned `is_final(1) == true` and `is_promoted(1) == true`; `get_release(1)` returned status `6` (`FINAL`) and decision `1` (`PROMOTE`).
