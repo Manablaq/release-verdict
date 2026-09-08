@@ -13,7 +13,7 @@ The decoded JSON record must contain:
   "published_at": 1788730000,
   "valid_until": 1788730900,
   "publisher_key_id": "registry-key-1",
-  "signature": "publisher-signed-payload",
+  "signature": "128-lowercase-hex-characters-ed25519-signature",
   "signed_payload_hash": "sha256-of-record-without-signature-fields",
   "project_id": "example/project",
   "release_version": "1.4.0",
@@ -23,6 +23,6 @@ The decoded JSON record must contain:
 }
 ```
 
-`signature` must be non-empty. `signed_payload_hash` is recomputed after removing `signature` and `signed_payload_hash`, with sorted JSON keys and compact separators. The hash of the body itself is computed over the complete response body, before JSON parsing. Metadata mismatches, missing fields, publisher mismatches, body changes, and invalid payload hashes fail closed.
+`signature` is a 64-byte Ed25519 signature encoded as 128 lowercase hexadecimal characters. It signs the canonical UTF-8 JSON payload after removing `signature` and `signed_payload_hash`; objects use recursively sorted keys and compact separators. `signed_payload_hash` is recomputed over those exact canonical bytes. The registered publisher public key is a 32-byte Ed25519 key encoded as 64 lowercase hexadecimal characters. The body hash is computed over the complete response body before JSON parsing. Metadata mismatches, missing fields, publisher mismatches, body changes, invalid payload hashes, malformed keys, and invalid signatures fail closed.
 
 Use different registered `source_group` values for artifact and security evidence. An appeal must use a third group. Evidence should be immutable or content-addressed and have a validity window longer than the review window.

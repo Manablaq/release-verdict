@@ -2,7 +2,7 @@
 
 ReleaseVerdict is a standalone GenLayer Intelligent Contract for deciding whether a software release satisfies a registered release policy. It is designed as a reusable release-governance primitive: a maintainer opens a release, attaches two independently published records, requests a GenLayer consensus evaluation, optionally submits one appeal record from a third source group, and finalizes the canonical verdict after the appeal window.
 
-The contract does not custody funds and does not pretend that a caller-provided signature string proves issuer identity. The owner registers publisher authorities with safe HTTPS origin/path prefixes. Every evidence URI must remain under its registered authority, every body is pinned by SHA-256, record metadata must match the on-chain reference, and the signed payload hash is recomputed. This makes provenance and evidence integrity reviewable before nondeterministic evaluation.
+The contract does not custody funds. The owner registers each publisher with a safe HTTPS origin/path prefix, an Ed25519 public key, and a key identifier. Every evidence URI must remain under its registered authority, every body is pinned by SHA-256, record metadata must match the on-chain reference, the signed payload hash is recomputed, and the detached Ed25519 signature is verified against the registered key. This makes provenance and issuer authenticity reviewable before nondeterministic evaluation.
 
 ## Why GenLayer consensus matters
 
@@ -31,8 +31,8 @@ The deployment source and Studio source must remain identical. Generate the sour
 
 ## Bradbury deployment
 
-The current Bradbury deployment is [`0x26BA1d035bB88e0c58630DCABB6d13F0359c3FE3`](https://explorer-bradbury.genlayer.com/address/0x26BA1d035bB88e0c58630DCABB6d13F0359c3FE3). Deployment succeeded with `FINISHED_WITH_RETURN`. The live smoke path completed policy registration, three publisher authorities, release creation, two consensus resolutions with a third-source appeal, and delayed finalization. Release `1` is `FINAL` with decision `PROMOTE`; both `is_final(1)` and `is_promoted(1)` return `true`.
+The v2 Bradbury deployment is [`0x12099eDc750360aE0321eff33c90E9D84cE772B2`](https://explorer-bradbury.genlayer.com/address/0x12099eDc750360aE0321eff33c90E9D84cE772B2). Its complete live verification record is maintained in [`docs/DEPLOYMENT_LOG_BRADBURY.md`](docs/DEPLOYMENT_LOG_BRADBURY.md). The deployed source and Studio source are byte-for-byte identical. The live smoke path covers publisher-key registration, signed evidence verification, two consensus resolutions with a third-source appeal, and delayed finalization.
 
-## Important limitation
+## Cryptographic verification boundary
 
-The contract uses authority-bound HTTPS paths plus exact body hashes and signed-payload consistency. `signature` is deliberately required as a record field, but it is not treated as cryptographic proof by itself. A deployment that needs cryptographic issuer identity should extend the publisher registry with a supported public-key/signature primitive and verify it inside the contract before acceptance.
+The contract uses a self-contained Ed25519 verifier implemented with the Python standard library available inside GenVM. Publishers register a 32-byte public key as lowercase hexadecimal. Evidence signatures are 64-byte Ed25519 signatures, also lowercase hexadecimal, over the canonical JSON record after removing `signature` and `signed_payload_hash`. Invalid keys, malformed points, small-order points, non-canonical scalars, wrong signatures, and tampered payloads fail closed. HTTPS authority binding and exact body hashes remain additional controls; neither is used as a substitute for signature verification.

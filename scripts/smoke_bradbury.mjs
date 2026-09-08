@@ -15,7 +15,9 @@ const privateKey = await keytar.getPassword("genlayer-cli", `account:${ACCOUNT_N
 if (!privateKey) throw new Error(`No cached key for '${ACCOUNT_NAME}'. Unlock it with the GenLayer CLI first.`);
 const account = createAccount(privateKey);
 const client = createClient({ chain: testnetBradbury, endpoint: RPC, account });
-const feeValue = BigInt(process.env.GENLAYER_FEE_VALUE_WEI || "1000000000000000000");
+// ReleaseVerdict has no application-fund movement.  Use zero value by default
+// so the Bradbury envelope only pays the network execution cost.
+const feeValue = BigInt(process.env.GENLAYER_FEE_VALUE_WEI || "0");
 const gasMargin = BigInt(process.env.GENLAYER_GAS_MARGIN || "200000");
 const gasLimit = process.env.GENLAYER_GAS_LIMIT ? BigInt(process.env.GENLAYER_GAS_LIMIT) : null;
 const originalEstimate = client.estimateTransactionGas.bind(client);
@@ -82,15 +84,20 @@ async function fetchFixture(name) {
 const artifact = await fetchFixture("artifact-v1.json");
 const security = await fetchFixture("security-v1.json");
 const appeal = await fetchFixture("appeal-v1.json");
+const publisherKeys = {
+  artifact: "e43dd54f532cfa97718a4570c75267cf3ce79aba574aef800346825bce5581d0",
+  security: "e918dad3ca0a54848aed18017ae320d219b5a4f15edf7d13d75aa1222957c2c1",
+  appeal: "d43b4db58daa8132beafb181480e94ff2bdd946d5ca9fc76d734332168a260b2",
+};
 const publishedAt = 1789000000n;
 const validUntil = 1792000000n;
 const transactions = [];
 const report = { contract: CONTRACT, account: account.address, transactions, checks: [] };
 
 for (const [label, args] of [
-  ["register artifact publisher", ["artifact-fixtures", "artifact-registry", new URL(".", artifact.uri).toString(), "artifact-fixtures-key-1"]],
-  ["register security publisher", ["security-fixtures", "security-advisory", new URL(".", security.uri).toString(), "security-fixtures-key-1"]],
-  ["register appeal publisher", ["appeal-fixtures", "independent-review", new URL(".", appeal.uri).toString(), "appeal-fixtures-key-1"]],
+  ["register artifact publisher", ["artifact-fixtures", "artifact-registry", new URL(".", artifact.uri).toString(), "artifact-fixtures-key-1", publisherKeys.artifact]],
+  ["register security publisher", ["security-fixtures", "security-advisory", new URL(".", security.uri).toString(), "security-fixtures-key-1", publisherKeys.security]],
+  ["register appeal publisher", ["appeal-fixtures", "independent-review", new URL(".", appeal.uri).toString(), "appeal-fixtures-key-1", publisherKeys.appeal]],
 ]) {
   const publisherId = args[0];
   try { await read("get_publisher", [publisherId]); console.log(`${label}: already registered`); }

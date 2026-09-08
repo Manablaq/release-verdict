@@ -1,42 +1,50 @@
 # Bradbury deployment log
 
-This file is updated only after the live deployment and smoke test. It records the exact source hash, contract address, fixture commit, transaction IDs, execution statuses, and final read-back values. Empty fields are intentional until deployment is complete.
+This file records the corrected ReleaseVerdict v2 source, immutable signed fixtures, accepted Bradbury transactions, and final read-back. The previous authority-only deployment is historical and is not the deployment for review.
 
 ## Identity
 
 - Network: GenLayer Bradbury
-- Contract: `ReleaseVerdict`
-- Contract address: `0x26BA1d035bB88e0c58630DCABB6d13F0359c3FE3`
-- Deployment transaction: `0x4faab19df01e852493bc68fb81e4f8bcc7cf3e2f222bed5229d5e5b23ce7d2a9`
-- Canonical source SHA-256: `747a30a83ce3dd353ee6f4980ce01c31d48d4705ef25258c6279aaef0b0ccafc`
-- Studio source SHA-256: `747a30a83ce3dd353ee6f4980ce01c31d48d4705ef25258c6279aaef0b0ccafc`
-- Fixture repository/commit: `https://github.com/Manablaq/release-verdict-fixtures` / `da10c0c`
+- Contract: `ReleaseVerdict v2`
+- Contract address: `0x12099eDc750360aE0321eff33c90E9D84cE772B2`
+- Explorer: `https://explorer-bradbury.genlayer.com/address/0x12099eDc750360aE0321eff33c90E9D84cE772B2`
+- Deployment transaction: `0x6c72044f9db13b1419fb501524f543234c28169e31f8e53f50f99877f47b6be1`
+- Canonical source SHA-256: `b02df2ad9868cbd0fe64c917bc017b0719ae5d16d4615b0289e9b14dcab23f48`
+- Studio source SHA-256: `b02df2ad9868cbd0fe64c917bc017b0719ae5d16d4615b0289e9b14dcab23f48`
+- Fixture repository/commit: `https://github.com/Manablaq/release-verdict-fixtures` / `1cc8082`
+- Fixture body SHA-256: artifact `34ff80dc42856acaf6dd376a1050158ce3432787f97c878c4661f597fe92f9c1`; security `71b349a786ed6326364727dbbb8e1701fb60dd87f96256aa616e5aa2dc30c1c9`; appeal `33f2fa03f0ed732428904837932e904fc2f7cd1f25de55527c7837505538ae1e`
 
 ## Accepted operations
 
 | Operation | Transaction | Consensus | Execution | Read-back |
 | --- | --- | --- | --- | --- |
-| deploy | `0x4faab19df01e852493bc68fb81e4f8bcc7cf3e2f222bed5229d5e5b23ce7d2a9` | ACCEPTED | FINISHED_WITH_RETURN | `0x26BA1d035bB88e0c58630DCABB6d13F0359c3FE3` |
+| deploy | `0x6c72044f9db13b1419fb501524f543234c28169e31f8e53f50f99877f47b6be1` | ACCEPTED | FINISHED_WITH_RETURN | v2 address deployed |
 | register policy | `0xddb6cc4a6808b4e7f8e910365c8c89c8575654d6c611e7a10439dad52f429e2a` | ACCEPTED | FINISHED_WITH_RETURN | `release-policy-v1` registered |
-| register artifact publisher | prior smoke transaction | ACCEPTED | FINISHED_WITH_RETURN | `artifact-fixtures` registered |
-| register security publisher | prior smoke transaction | ACCEPTED | FINISHED_WITH_RETURN | `security-fixtures` registered |
-| register appeal publisher | `0xf7cdefbf9d32f5a999094559e3b2d2e0ac0760f4c67340c966c08eb1be0ca7ea` | ACCEPTED | FINISHED_WITH_RETURN | `appeal-fixtures` registered |
-| open release | `0xfee311f72d45820c52f51e7abd0da5faba72684801a510d7368001192447ebe5` | ACCEPTED | FINISHED_WITH_RETURN | release `1` opened |
-| attach evidence | `0xfdaff4cbaee2d0301efc3b9ae4e084f8a315e937ef3bb514dd266e636d91fa3e` | ACCEPTED | FINISHED_WITH_RETURN | artifact + security evidence attached |
-| start review | `0xee91981ba5889d096e9013ddf4d2623abaac84a600c61c031168a83591730701` | ACCEPTED | FINISHED_WITH_RETURN | release `1` reviewing |
-| resolve release | `0x418c37ad05e1fa291eb033dde4b9b0cd8a3e80700420d054ae88496044a17d98`; retry `0x930ecb3984750343e226cbfb59d1688cf867648b19e937972c34342fa457763d` | leader timeout in receipt; state later became reviewed | pending explorer verification | initial consensus eventually observed before appeal |
-| submit appeal | `0x60e3fc54e97fa04b6b65dfcda758db40f5ba30efede4a4d6a3c015e141fad7a3` | ACCEPTED | FINISHED_WITH_RETURN | appeal recorded; revision `2` |
-| fresh start review | `0x7e7daa26cc5973df7e198512504da2bd54dff975344b02062b4bbef42b5b365f` | ACCEPTED | FINISHED_WITH_RETURN | release `1` reviewing again |
-| fresh resolve | `0xf008af2d57967307c610a958d6234cfe55f80351e9444b6fd69fe379ba7cecfa` | ACCEPTED | FINISHED_WITH_RETURN | `PROMOTE`, confidence `9500`, resolutions `2` |
-| finalize release | `0xb6ead6870a50da092476435a0a02d14036ac13985f807367ad754137d3c6c472` | ACCEPTED | FINISHED_WITH_RETURN | status `FINAL` |
+| register artifact publisher | `0x53c0ee91d0f5ffdefe29c730e0489aed4079cb3d7773fdeab9f14284b0074d88` | ACCEPTED | FINISHED_WITH_RETURN | Ed25519 key registered |
+| register security publisher | `0xc05261a91aa37f914eb419e50699edae7fea77774d2c69021b207b3980d1d6e4` | ACCEPTED | FINISHED_WITH_RETURN | Ed25519 key registered |
+| register appeal publisher | `0x45a52fb3511afe9c311f0840da93bb40cae64452d8373a8a63e5d02be60c51e7` | ACCEPTED | FINISHED_WITH_RETURN | Ed25519 key registered |
+| register policy | `0x7bbcbf583c3e193c7dd2ad1e7d0ce78095c731d88307035c81f6bd983dba68cf` | ACCEPTED | FINISHED_WITH_RETURN | policy registered |
+| open release | `0x579255740d16b50c66484a0bf3ae11a4f07a708a09a782b045a23989539f464a` | ACCEPTED | FINISHED_WITH_RETURN | release `1` opened |
+| attach evidence | `0xcee3a2cb759c88ab7da3c0ba18d0ca57ce7fc894327c6813b72c44a3fc735725` | ACCEPTED | FINISHED_WITH_RETURN | signed artifact + security evidence attached |
+| start initial review | `0x44ac4de83f59589341dae50933949d106e9c4cf9b6981afed731d0ab96ca1be6` | ACCEPTED | FINISHED_WITH_RETURN | review started |
+| resolve initial review | `0x1386d10a1123050db3fe2de9b93c2e9fc2240ae6cf892d424e786c2c6539db1a` | ACCEPTED | FINISHED_WITH_RETURN | `PROMOTE`, confidence `9500` |
+| submit third-source appeal | `0xcb1c6cd4600c4123c75214853b0bb4c6ecdf0eab80e43a9499e34512056e5801` | ACCEPTED | FINISHED_WITH_RETURN | old consensus cleared; revision `2` |
+| start appealed review | `0xaf7e3170d729780ae4b87a48d008ff002fa46ac27ed968f9772a81d70f4e7758` | ACCEPTED | FINISHED_WITH_RETURN | appealed review started |
+| resolve appealed review | `0xb17223e5da0fa536897577a0289a6fa968562470b421e9d72f5f412805ffc086` | ACCEPTED | FINISHED_WITH_RETURN | `PROMOTE`, confidence `9500`, resolution `2` |
 
 ## Result
 
-- Current status: `REVIEWING` after the third-source appeal and fresh review-start transaction.
-- Remaining live test: fresh resolve, then finalization after the new challenge deadline.
-- Final status: `FINAL`
-- Final decision: `PROMOTE` (`decision` code `1`)
-- Final evidence revision: `2` after appeal
-- Final resolution count: `2`
-- `is_final(1)`: `true`
-- `is_promoted(1)`: `true`
+- Current status at last read: `REVIEWED` (`4`)
+- Decision: `PROMOTE` (`1`)
+- Confidence: `9500`
+- Consensus bound: `true`
+- Evidence revision: `2`
+- Resolution count: `2`
+- Challenge deadline: `1788886319`
+
+## Finalization
+
+The challenge window is a required protocol safety delay. Run the resumable
+smoke command after the deadline to submit `finalize_release`; record its
+accepted transaction and then confirm `is_final(1) == true` and
+`is_promoted(1) == true`.

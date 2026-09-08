@@ -40,6 +40,18 @@ class ContractInvariantTests(unittest.TestCase):
         ):
             self.assertIn(needle, SOURCE)
 
+    def test_issuer_signature_verification_is_enforced(self):
+        for needle in (
+            "ED25519_L",
+            "_ed25519_verify",
+            "_valid_ed25519_public_key",
+            "public_key: str",
+            "evidence_signature_invalid",
+            "_canonical_payload(record)",
+        ):
+            self.assertIn(needle, SOURCE)
+        self.assertNotIn("fixture-signature-", SOURCE)
+
     def test_policy_and_release_are_separate_state(self):
         self.assertIn("policies: TreeMap[str, Policy]", SOURCE)
         self.assertIn("releases: TreeMap[u256, Release]", SOURCE)

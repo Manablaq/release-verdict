@@ -3,10 +3,11 @@
 
 ReleaseVerdict turns independently published release and security records into
 a deterministic, machine-readable release recommendation. Authorities are
-registered by the contract owner, evidence URLs are restricted to those
-authorities, records are pinned by exact body hashes and metadata, and the
-leader result is independently re-evaluated by validators. A release can be
-appealed with a third source and is only final after its challenge window.
+registered by the contract owner with Ed25519 public keys, evidence URLs are
+restricted to those authorities, records are pinned by exact body hashes and
+metadata, and detached signatures are verified against the registered key.
+The leader result is independently re-evaluated by validators. A release can
+be appealed with a third source and is only final after its challenge window.
 """
 
 from genlayer import *
@@ -38,6 +39,139 @@ DEFAULT_REVIEW_TTL = u256(15 * 60)
 MAX_REVIEW_TTL = u256(7 * 24 * 60 * 60)
 REVIEW_WINDOW = u256(15 * 60)
 
+# Ed25519 parameters.  The verifier is intentionally self-contained so the
+# contract does not depend on an unavailable native crypto package inside
+# GenVM.  Signatures are encoded as 128 lowercase hexadecimal characters and
+# public keys as 64 lowercase hexadecimal characters.
+ED25519_Q = 2 ** 255 - 19
+ED25519_L = 2 ** 252 + 27742317777372353535851937790883648493
+ED25519_D = (-121665 * pow(121666, ED25519_Q - 2, ED25519_Q)) % ED25519_Q
+ED25519_I = pow(2, (ED25519_Q - 1) // 4, ED25519_Q)
+ED25519_Y = (4 * pow(5, ED25519_Q - 2, ED25519_Q)) % ED25519_Q
+ED25519_IDENTITY = (0, 1, 1, 0)
+
+
+def _hex_bytes(value: str, expected_length: int):
+    text = str(value).strip().lower()
+    if len(text) != expected_length * 2:
+        return None
+    if any(character not in "0123456789abcdef" for character in text):
+        return None
+    return bytes(int(text[index:index + 2], 16) for index in range(0, len(text), 2))
+
+
+def _ed25519_point_add(first, second):
+    x1, y1, z1, t1 = first
+    x2, y2, z2, t2 = second
+    a = ((y1 - x1) * (y2 - x2)) % ED25519_Q
+    b = ((y1 + x1) * (y2 + x2)) % ED25519_Q
+    c = (2 * ED25519_D * t1 * t2) % ED25519_Q
+    d = (2 * z1 * z2) % ED25519_Q
+    e = (b - a) % ED25519_Q
+    f = (d - c) % ED25519_Q
+    g = (d + c) % ED25519_Q
+    h = (b + a) % ED25519_Q
+    return ((e * f) % ED25519_Q, (g * h) % ED25519_Q,
+            (f * g) % ED25519_Q, (e * h) % ED25519_Q)
+
+
+def _ed25519_point_double(point):
+    x1, y1, z1, _ = point
+    a = (x1 * x1) % ED25519_Q
+    b = (y1 * y1) % ED25519_Q
+    c = (2 * z1 * z1) % ED25519_Q
+    d = (-a) % ED25519_Q
+    e = ((x1 + y1) * (x1 + y1) - a - b) % ED25519_Q
+    g = (d + b) % ED25519_Q
+    f = (g - c) % ED25519_Q
+    h = (d - b) % ED25519_Q
+    return ((e * f) % ED25519_Q, (g * h) % ED25519_Q,
+            (f * g) % ED25519_Q, (e * h) % ED25519_Q)
+
+
+def _ed25519_scalar_mult(point, scalar):
+    result = ED25519_IDENTITY
+    addend = point
+    value = int(scalar)
+    while value > 0:
+        if value & 1:
+            result = _ed25519_point_add(result, addend)
+        addend = _ed25519_point_double(addend)
+        value >>= 1
+    return result
+
+
+def _ed25519_decode_point(encoded):
+    if not isinstance(encoded, bytes) or len(encoded) != 32:
+        return None
+    encoded_value = int.from_bytes(encoded, "little")
+    sign = (encoded_value >> 255) & 1
+    y = encoded_value & ((1 << 255) - 1)
+    if y >= ED25519_Q:
+        return None
+    y_squared = (y * y) % ED25519_Q
+    x_squared = ((y_squared - 1) * pow(ED25519_D * y_squared + 1, ED25519_Q - 2, ED25519_Q)) % ED25519_Q
+    x = pow(x_squared, (ED25519_Q + 3) // 8, ED25519_Q)
+    if (x * x - x_squared) % ED25519_Q != 0:
+        x = (x * ED25519_I) % ED25519_Q
+    if (x * x - x_squared) % ED25519_Q != 0:
+        return None
+    if x == 0 and sign == 1:
+        return None
+    if (x & 1) != sign:
+        x = ED25519_Q - x
+    return (x, y, 1, (x * y) % ED25519_Q)
+
+
+def _ed25519_is_identity(point) -> bool:
+    x, y, z, _ = point
+    return x % ED25519_Q == 0 and y % ED25519_Q == z % ED25519_Q
+
+
+def _ed25519_verify(public_key: str, signature: str, message: str) -> bool:
+    public_key_bytes = _hex_bytes(public_key, 32)
+    signature_bytes = _hex_bytes(signature, 64)
+    if public_key_bytes is None or signature_bytes is None:
+        return False
+    public_point = _ed25519_decode_point(public_key_bytes)
+    r_bytes = signature_bytes[:32]
+    r_point = _ed25519_decode_point(r_bytes)
+    if public_point is None or r_point is None:
+        return False
+    scalar = int.from_bytes(signature_bytes[32:], "little")
+    if scalar >= ED25519_L:
+        return False
+    # Reject small-order keys and R values.  This prevents weak points from
+    # satisfying the verification equation while retaining strict Ed25519.
+    if _ed25519_is_identity(_ed25519_scalar_mult(public_point, 8)):
+        return False
+    if _ed25519_is_identity(_ed25519_scalar_mult(r_point, 8)):
+        return False
+    challenge = int.from_bytes(
+        hashlib.sha512(r_bytes + public_key_bytes + str(message).encode("utf-8")).digest(),
+        "little",
+    ) % ED25519_L
+    left = _ed25519_scalar_mult(_ed25519_base_point(), scalar)
+    right = _ed25519_point_add(r_point, _ed25519_scalar_mult(public_point, challenge))
+    return (left[0] * right[2] - right[0] * left[2]) % ED25519_Q == 0 and (left[1] * right[2] - right[1] * left[2]) % ED25519_Q == 0
+
+
+def _valid_ed25519_public_key(public_key: str) -> bool:
+    encoded = _hex_bytes(public_key, 32)
+    point = _ed25519_decode_point(encoded) if encoded is not None else None
+    return point is not None and not _ed25519_is_identity(_ed25519_scalar_mult(point, 8))
+
+
+def _ed25519_base_point():
+    y = ED25519_Y
+    x_squared = ((y * y - 1) * pow(ED25519_D * y * y + 1, ED25519_Q - 2, ED25519_Q)) % ED25519_Q
+    x = pow(x_squared, (ED25519_Q + 3) // 8, ED25519_Q)
+    if (x * x - x_squared) % ED25519_Q != 0:
+        x = (x * ED25519_I) % ED25519_Q
+    if x & 1:
+        x = ED25519_Q - x
+    return (x, y, 1, (x * y) % ED25519_Q)
+
 
 @allow_storage
 @dataclass
@@ -46,6 +180,7 @@ class Publisher:
     source_group: str
     publisher_uri: str
     key_id: str
+    public_key: str
     active: bool
     registered_at: u256
 
@@ -192,11 +327,14 @@ def _decode_record_body(body: str):
 
 
 def _signed_payload_hash(record: dict) -> str:
+    return hashlib.sha256(_canonical_payload(record).encode("utf-8")).hexdigest()
+
+
+def _canonical_payload(record: dict) -> str:
     payload = dict(record)
     payload.pop("signature", None)
     payload.pop("signed_payload_hash", None)
-    canonical_payload = json.dumps(payload, sort_keys=True, separators=(",", ":"))
-    return hashlib.sha256(canonical_payload.encode("utf-8")).hexdigest()
+    return json.dumps(payload, sort_keys=True, separators=(",", ":"))
 
 
 def _safe_https_parts(uri: str):
@@ -233,7 +371,7 @@ def _fetch_record(uri: str, expected_hash: str, expected_publisher_id: str,
                   expected_group: str, expected_record_id: str,
                   expected_version: u256, expected_published_at: u256,
                   expected_valid_until: u256, key_id: str,
-                  publisher_uri: str):
+                  public_key: str, publisher_uri: str):
     if not _uri_matches_publisher(uri, publisher_uri):
         return None, _error_result("publisher_authority_mismatch", expected_hash)
     try:
@@ -265,6 +403,8 @@ def _fetch_record(uri: str, expected_hash: str, expected_publisher_id: str,
         return None, _error_result("evidence_signature_missing", expected_hash)
     if _hash(str(record.get("signed_payload_hash", ""))) != _signed_payload_hash(record):
         return None, _error_result("evidence_signed_hash_mismatch", expected_hash)
+    if not _ed25519_verify(public_key, str(record.get("signature", "")), _canonical_payload(record)):
+        return None, _error_result("evidence_signature_invalid", expected_hash)
     return record, None
 
 
@@ -299,7 +439,7 @@ def _load_records(snapshot: dict):
         snapshot["artifact_uri"], snapshot["artifact_hash"], snapshot["artifact_publisher_id"],
         snapshot["artifact_group"], snapshot["artifact_record_id"], snapshot["artifact_version"],
         snapshot["artifact_published_at"], snapshot["artifact_valid_until"],
-        snapshot["artifact_key_id"], snapshot["artifact_publisher_uri"],
+        snapshot["artifact_key_id"], snapshot["artifact_public_key"], snapshot["artifact_publisher_uri"],
     )
     if error is not None:
         return None, None, None, _with_snapshot_hashes(error, snapshot)
@@ -307,7 +447,7 @@ def _load_records(snapshot: dict):
         snapshot["security_uri"], snapshot["security_hash"], snapshot["security_publisher_id"],
         snapshot["security_group"], snapshot["security_record_id"], snapshot["security_version"],
         snapshot["security_published_at"], snapshot["security_valid_until"],
-        snapshot["security_key_id"], snapshot["security_publisher_uri"],
+        snapshot["security_key_id"], snapshot["security_public_key"], snapshot["security_publisher_uri"],
     )
     if error is not None:
         return None, None, None, _with_snapshot_hashes(error, snapshot)
@@ -317,7 +457,7 @@ def _load_records(snapshot: dict):
             snapshot["appeal_uri"], snapshot["appeal_hash"], snapshot["appeal_publisher_id"],
             snapshot["appeal_group"], snapshot["appeal_record_id"], snapshot["appeal_version"],
             snapshot["appeal_published_at"], snapshot["appeal_valid_until"],
-            snapshot["appeal_key_id"], snapshot["appeal_publisher_uri"],
+            snapshot["appeal_key_id"], snapshot["appeal_public_key"], snapshot["appeal_publisher_uri"],
         )
         if error is not None:
             return None, None, None, _with_snapshot_hashes(error, snapshot)
@@ -419,18 +559,22 @@ class ReleaseVerdict(gl.Contract):
 
     @gl.public.write.payable
     def register_publisher(self, publisher_id: str, source_group: str,
-                           publisher_uri: str, key_id: str) -> None:
+                           publisher_uri: str, key_id: str,
+                           public_key: str) -> None:
         self._only_owner()
         for value, label in ((publisher_id, "publisher_id"), (source_group, "source_group"),
                              (publisher_uri, "publisher_uri"), (key_id, "key_id")):
             self._require_text(value, label)
         if _safe_https_parts(publisher_uri) is None:
             raise gl.vm.UserError("publisher_uri must be a safe HTTPS origin/path")
+        if not _valid_ed25519_public_key(public_key):
+            raise gl.vm.UserError("public_key must be a valid Ed25519 public key")
         if self.publisher_registered.get(publisher_id, False):
             raise gl.vm.UserError("publisher already registered")
         self.publishers[publisher_id] = Publisher(
             publisher_id=publisher_id, source_group=source_group,
-            publisher_uri=publisher_uri, key_id=key_id, active=True,
+            publisher_uri=publisher_uri, key_id=key_id,
+            public_key=_hash(public_key), active=True,
             registered_at=self._now(),
         )
         self.publisher_registered[publisher_id] = True
@@ -682,16 +826,19 @@ class ReleaseVerdict(gl.Contract):
             "artifact_record_id": release.artifact_record_id, "artifact_version": release.artifact_version,
             "artifact_published_at": release.artifact_published_at, "artifact_valid_until": release.artifact_valid_until,
             "artifact_key_id": artifact.key_id, "artifact_publisher_uri": artifact.publisher_uri,
+            "artifact_public_key": artifact.public_key,
             "security_uri": release.security_uri, "security_hash": release.security_hash,
             "security_publisher_id": release.security_publisher_id, "security_group": release.security_group,
             "security_record_id": release.security_record_id, "security_version": release.security_version,
             "security_published_at": release.security_published_at, "security_valid_until": release.security_valid_until,
             "security_key_id": security.key_id, "security_publisher_uri": security.publisher_uri,
+            "security_public_key": security.public_key,
             "appeal_uri": release.appeal_uri, "appeal_hash": release.appeal_hash,
             "appeal_publisher_id": release.appeal_publisher_id, "appeal_group": release.appeal_group,
             "appeal_record_id": release.appeal_record_id, "appeal_version": release.appeal_version,
             "appeal_published_at": release.appeal_published_at, "appeal_valid_until": release.appeal_valid_until,
             "appeal_key_id": "" if appeal is None else appeal.key_id,
+            "appeal_public_key": "" if appeal is None else appeal.public_key,
             "appeal_publisher_uri": "" if appeal is None else appeal.publisher_uri,
             "appeal_note": release.appeal_note,
         }

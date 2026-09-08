@@ -9,4 +9,4 @@ The live flow is intentionally contract-only:
 5. Optionally attach an appeal record from the third source group and repeat review.
 6. Finalize after the challenge window.
 
-The records in this directory are shape examples only. Before a live test, replace their timestamps and hashes with the exact immutable fixture response bodies and register matching authority prefixes.
+The records in this directory are shape examples only. Before a live test, replace their timestamps and hashes with the exact immutable fixture response bodies, sign each canonical record with the publisher's Ed25519 private key, and register the matching public key and authority prefix. The contract rejects missing, malformed, or invalid signatures.
